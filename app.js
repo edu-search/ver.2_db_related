@@ -1,79 +1,52 @@
 const express = require('express');
 const mysql = require('mysql');
+//const Pool = require('pg').Pool;
+var PORT = process.env.PORT || 3000;
 
-//Create connectionnodem
-const db = mysql.createConnection({
-    host     : '35.197.139.148',
-    //port     :  3306,
-    user     : 'zihao',
-    password : 'edusearch',
-    database :  'EduSearch'
+//Create connection
+// const db = mysql.createConnection({
+//     host     : 'us-cdbr-east-03.cleardb.com',
+//     port     :  3306,
+//     user     : 'b65ad79c00955a',
+//     password : '5dbd3aaa',
+//     database :  'heroku_7cb47379603c84e',
+// });
+
+var pool = mysql.createPool({
+    host     : 'us-cdbr-east-03.cleardb.com',
+    port     :  3306,
+    user     : 'b65ad79c00955a',
+    password : '5dbd3aaa',
+    database :  'heroku_7cb47379603c84e'
 });
+
+exports.pool = pool;
 
 //Connect
-db.connect((err) => {
-    if (err) throw err;
-    console.log('MySql Connected...');
-});
+// db.connect((err) => {
+//     if (err) throw err;
+//     console.log('MySql Connected...');
+// });
 
 const app = express();
-
-//Create BD
-app.get('/createdb', (req, res) => {
-    let sql = 'CREATE DATABASE test_1';
-    db.query(sql, (err, result) => {
-        if(err) throw err;
-        console.log(result);
-        res.send('Database created...');
-    });
-});
-
-
-
-
-
-//Create post table
-//Create student post table
-app.get('/create_student_posts_table', (req, res) => {
-    let sql = 'CREATE TABLE student_posts_table(id int AUTO_INCREMENT, title VARCHAR(255), body VARCHAR(255), PRIMARY KEY(id))';
-    db.query(sql, (err, result) => {
-        if (err) throw err;
-        console.log(result);
-        res.send('Student posts table created...');
-    });
-});
-
-//Create tutor post table
-app.get('/create_tutor_posts_table', (req, res) => {
-    let sql = 'CREATE TABLE tutor_posts_table(id int AUTO_INCREMENT, title VARCHAR(255), body VARCHAR(255), PRIMARY KEY(id))';
-    db.query(sql, (err, result) => {
-        if (err) throw err;
-        console.log(result);
-        res.send('Tutor posts table created...');
-    });
-});
-
-
-
-
 
 //Insert into post table
 //Insert student post
 app.get('/add_student_post', (req, res) => {
-    let post = {title:'Student post', body:'This is a student post'};
-    let sql = 'INSERT INTO student_posts_table SET ?';
-    let query = db.query(sql, post, (err, result) => {
+    let post = {user_id:'123456', name:'zihao', contact:'88888888', grade_id:'9', location_id:'1', price:'$50/h', subject_id:'3', description:'hello this is a test '};
+    let sql = 'INSERT INTO student_post SET ?';
+    let query = pool.query(sql, post, (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send('Student post added...');
     });
 });
 
-//Insert tutor post
+// //Insert tutor post
 app.get('/add_tutor_post', (req, res) => {
-    let post = {title:'Tutor post', body:'This is a tutor post'};
-    let sql = 'INSERT INTO tutor_posts_table SET ?';
-    let query = db.query(sql, post, (err, result) => {
+    let post = {user_id: '654321', name:'Ben Leong', location_id: '1'};
+    let sql = 'INSERT INTO tutor_post SET ?';
+    let query = pool.query(sql, post, (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send('Tutor post added...');
@@ -82,13 +55,11 @@ app.get('/add_tutor_post', (req, res) => {
 
 
 
-
-
 //Retrieve post tables
 //Retrieve student posts
-app.get('/get_student_posts', (req, res) => {
-    let sql = 'SELECT * FROM student_posts_table';
-    let query = db.query(sql, (err, results) => {
+app.get('/get_student_post', (req, res) => {
+    let sql = 'SELECT * FROM student_post';
+    let query = pool.query(sql, (err, results) => {
         if(err) throw err;
         console.log(results);
         res.send(result);
@@ -96,9 +67,9 @@ app.get('/get_student_posts', (req, res) => {
 });
 
 //Retrieve tutor posts
-app.get('/get_tutor_posts', (req, res) => {
-    let sql = 'SELECT * FROM tutor_posts_table';
-    let query = db.query(sql, (err, results) => {
+app.get('/get_tutor_post', (req, res) => {
+    let sql = 'SELECT * FROM tutor_post';
+    let query = pool.query(sql, (err, results) => {
         if(err) throw err;
         console.log(results);
         res.send('Tutor posts fetched...');
@@ -107,13 +78,11 @@ app.get('/get_tutor_posts', (req, res) => {
 
 
 
-
-
 //Retrieve a single post
 //Select a single student post
-app.get('/get_student_posts/:id', (req, res) => {
-    let sql = `SELECT * FROM student_posts_table WHERE id = ${req.params.id}`;
-    let query = db.query(sql, (err, result) => {
+app.get('/get_student_post/:id', (req, res) => {
+    let sql = `SELECT * FROM student_post WHERE id = ${req.params.id}`;
+    let query = pool.query(sql, (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send('A student post is fetched...');
@@ -121,9 +90,9 @@ app.get('/get_student_posts/:id', (req, res) => {
 });
 
 //Select a single tutor post
-app.get('/get_tutor_posts/:id', (req, res) => {
-    let sql = `SELECT * FROM tutor_posts_table WHERE id = ${req.params.id}`;
-    let query = db.query(sql, (err, result) => {
+app.get('/get_tutor_post/:id', (req, res) => {
+    let sql = `SELECT * FROM tutor_post WHERE id = ${req.params.id}`;
+    let query = pool.query(sql, (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send('A tutor post is fetched...');
@@ -132,14 +101,12 @@ app.get('/get_tutor_posts/:id', (req, res) => {
 
 
 
-
-
 //Update a single post
 //Update a student post
 app.get('/update_student_post/:id', (req, res) => {
     let newTitle = 'Updated Student post';
-    let sql = `UPDATE student_posts_table SET title = '${newTitle}' WHERE id = ${req.params.id}`;
-    let query = db.query(sql, (err, result) => {
+    let sql = `UPDATE student_post SET name = '${newTitle}' WHERE id = ${req.params.id}`;
+    let query = pool.query(sql, (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send('Student post updated...');
@@ -149,8 +116,8 @@ app.get('/update_student_post/:id', (req, res) => {
 //Update a tutor post
 app.get('/update_tutor_post/:id', (req, res) => {
     let newTitle = 'Updated Tutor post';
-    let sql = `UPDATE tutor_posts_table SET title = '${newTitle}' WHERE id = ${req.params.id}`;
-    let query = db.query(sql, (err, result) => {
+    let sql = `UPDATE tutor_post SET name = '${newTitle}' WHERE id = ${req.params.id}`;
+    let query = pool.query(sql, (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send('Tutor post updated...');
@@ -159,14 +126,12 @@ app.get('/update_tutor_post/:id', (req, res) => {
 
 
 
-
-
 //Delete post
 //Delete student post
 app.get('/delete_student_post/:id', (req, res) => {
     let newTitle = 'Updated Student post';
-    let sql = `DELETE FROM student_posts_table WHERE id = ${req.params.id}`;
-    let query = db.query(sql, (err, result) => {
+    let sql = `DELETE FROM student_post WHERE id = ${req.params.id}`;
+    let query = pool.query(sql, (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send('Student post deleted...');
@@ -176,8 +141,8 @@ app.get('/delete_student_post/:id', (req, res) => {
 //Delete tutpr post
 app.get('/delete_tutor_post/:id', (req, res) => {
     let newTitle = 'Updated Tutor post';
-    let sql = `DELETE FROM tutor_posts_table WHERE id = ${req.params.id}`;
-    let query = db.query(sql, (err, result) => {
+    let sql = `DELETE FROM tutor_post WHERE id = ${req.params.id}`;
+    let query = pool.query(sql, (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send('Tutor post deleted...');
@@ -186,9 +151,7 @@ app.get('/delete_tutor_post/:id', (req, res) => {
 
 
 
-
-
 //App opened on port...
-app.listen('3000', () => {
-    console.log('Server started on port 3000');
+app.listen(PORT, () => {
+    console.log('Server started on port ' + PORT);
 });
